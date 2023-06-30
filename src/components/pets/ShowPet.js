@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Container, Card, Button } from 'react-bootstrap'
 // the api call we use to get a single pet from the db
-import { getOnePet } from '../../api/pets'
+import { getOnePet, updatePet, removePet } from '../../api/pets'
 import messages from '../shared/AutoDismissAlert/messages'
+import EditPetModal from './EditPetModal'
 
 // we're going to use a combination of boostrap(react-bootstrap) and a styling object to style this component
 const cardContainerStyle = {
@@ -14,6 +15,10 @@ const cardContainerStyle = {
 
 const ShowPet = (props) => {
     const [pet, setPet] = useState(null)
+    // handles showing the edit modal
+    const [editModalShow, setEditModalShow] = useState(false)
+    // this is going to handle our refresh of this component
+    const [updated, setUpdated] = useState(false)
 
     const { id } = useParams()
     const navigate = useNavigate()
@@ -31,13 +36,35 @@ const ShowPet = (props) => {
                     variant: 'danger'
                 })
             })
-    }, [])
+    }, [updated])
+
+    const setPetFree = () => {
+        // console.log('the pet in submit', pet)
+        removePet(user, pet)
+            .then(() => {
+                msgAlert({
+                    heading: 'Oh Ya!',
+                    message: messages.deletePetSuccess,
+                    variant: 'success'
+                })
+            })
+            // when we delete we will navigate back to the index
+            .then(() => {navigate('/')})
+            .catch(() => {
+                msgAlert({
+                    heading: 'Oh No!',
+                    message: messages.deletePetFailure,
+                    variant: 'danger'
+                })
+            })
+    }
 
     if(!pet) {
         return <p>Loading...</p>
     }
 
     return (
+        <>
         <Container className='m-2'>
             <Card>
                 <Card.Header>{ pet.fullTitle }</Card.Header>
@@ -51,10 +78,41 @@ const ShowPet = (props) => {
                     </Card.Text>
                 </Card.Body>
                 <Card.Footer>
-                    <small>edit, delete, and give toy buttons go here</small>
+                    {
+                        pet.owner && user && pet.owner._id === user._id
+                        ?
+                        <>
+                            <Button
+                                className='m-2'
+                                variant='warning'
+                                onClick={() => setEditModalShow(true)}
+                                >
+                                Edit {pet.name}
+                            </Button>
+                            <Button
+                                className='m-2'
+                                variant='danger'
+                                onClick={() => setPetFree()}
+                            >
+                                Set {pet.name} Free
+                            </Button>
+                        </>
+                        :
+                        null
+                    }
                 </Card.Footer>
             </Card>        
         </Container>
+        <EditPetModal 
+            user={user}
+            show={editModalShow}
+            handleClose={() => setEditModalShow(false)}
+            updatePet={updatePet}
+            msgAlert={msgAlert}
+            pet={pet}
+            triggerRefresh={() => setUpdated(prev => !prev)}
+        />
+        </>
     )
 }
 

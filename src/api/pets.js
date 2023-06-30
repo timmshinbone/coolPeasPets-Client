@@ -13,7 +13,34 @@ export const getOnePet = (id) => {
 }
 
 // Create -> creates a pet
-
+export const createPet = (user, newPet) => {
+    return axios({
+        url: `${apiUrl}/pets`,
+        method: 'POST',
+        headers: {
+            Authorization: `Token token=${user.token}`
+        },
+        data: { pet: newPet}
+    })
+}
 // Update -> updates a pet
-
+export const updatePet = (user, updatedPet) => {
+    return axios({
+        url: `${apiUrl}/pets/${updatedPet.id}`,
+        method: 'PATCH',
+        headers: {
+            Authorization: `Token token=${user.token}`
+        },
+        data: { pet: updatedPet}
+    })
+}
 // Delete -> sets a pet free
+export const removePet = (user, petToDelete) => {
+    return axios({
+        url: `${apiUrl}/pets/${petToDelete.id}`,
+        method: 'DELETE',
+        headers: {
+            Authorization: `Token token=${user.token}`
+        }
+    })
+}
